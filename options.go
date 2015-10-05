@@ -7,7 +7,6 @@ import (
 	"github.com/18F/hmacauth"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 )
 
@@ -115,8 +114,9 @@ func validateMode(opts *HmacProxyOpts, msgs []string) []string {
 }
 
 func validatePort(opts *HmacProxyOpts, msgs []string) []string {
-	if opts.Port < 0 {
-		msgs = append(msgs, "invalid port: "+strconv.Itoa(opts.Port))
+	if opts.Port <= 0 {
+		msgs = append(msgs, "port must be specified and " +
+			"greater than zero")
 	}
 	return msgs
 }

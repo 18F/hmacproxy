@@ -16,6 +16,12 @@ func newHandler(flags *flag.FlagSet, opts *HmacProxyOpts,
 	if err := flags.Parse(argv); err != nil {
 		panic("error parsing argv: " + err.Error())
 	}
+
+	// The full command-line program requires that -port be greater than
+	// zero, but the test servers will pick ports dynamically. To avoid
+	// having useless -port arguments in the test, we'll add a fake
+	// argument here.
+	opts.Port = 1
 	if err := opts.Validate(); err != nil {
 		panic("error parsing options: " + err.Error())
 	}
