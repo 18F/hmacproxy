@@ -1,0 +1,21 @@
+{
+	"ImportPath": "github.com/18F/hmacproxy",
+	"GoVersion": "go1.4.2",
+	"Deps": [
+		{
+			"ImportPath": "github.com/18F/hmacauth",
+			"Comment": "0.0.0-pr-1",
+			"Rev": "4b5b37ec51e7a1bb38e342de941697338eaa87f7"
+		},
+		{
+			"ImportPath": "github.com/onsi/ginkgo",
+			"Comment": "v1.2.0-14-g1b59c57",
+			"Rev": "1b59c57df76ede42c08590546916e6a18685857d"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega",
+			"Comment": "v1.0-67-gd6dbcad",
+			"Rev": "d6dbcadd097a94624226ca555d70a0d14d4d6181"
+		}
+	]
+}
