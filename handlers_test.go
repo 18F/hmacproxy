@@ -1,8 +1,7 @@
-package main_test
+package main
 
 import (
 	"flag"
-	. "github.com/18F/hmacproxy"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"io/ioutil"
@@ -16,10 +15,16 @@ func newHandler(flags *flag.FlagSet, opts *HmacProxyOpts,
 	if err := flags.Parse(argv); err != nil {
 		panic("error parsing argv: " + err.Error())
 	}
+
+	// The full command-line program requires that -port be greater than
+	// zero, but the test servers will pick ports dynamically. To avoid
+	// having useless -port arguments in the test, we'll add a fake
+	// argument here.
+	opts.Port = 1
 	if err := opts.Validate(); err != nil {
 		panic("error parsing options: " + err.Error())
 	}
-	return NewHttpProxyHandler(opts)
+	return NewHTTPProxyHandler(opts)
 }
 
 type proxiedServer struct {
@@ -27,7 +32,7 @@ type proxiedServer struct {
 }
 
 func (ps proxiedServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Success!"))
+	_, _ = w.Write([]byte("Success!"))
 }
 
 var _ = Describe("HmacProxy Handlers", func() {

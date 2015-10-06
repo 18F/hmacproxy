@@ -1,9 +1,8 @@
-package main_test
+package main
 
 import (
 	"crypto"
 	"flag"
-	. "github.com/18F/hmacproxy"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"os"
@@ -30,6 +29,7 @@ var _ = Describe("HmacProxyOpts", func() {
 	Context("with a valid configuration", func() {
 		It("should set sign-and-proxy mode using defaults", func() {
 			err := flags.Parse([]string{
+				"-port=8080",
 				"-secret=foobar",
 				"-sign-header=Test-Signature",
 				"-upstream=https://localhost:8080/",
@@ -37,17 +37,19 @@ var _ = Describe("HmacProxyOpts", func() {
 			Expect(err).NotTo(HaveOccurred())
 			err = opts.Validate()
 			Expect(err).NotTo(HaveOccurred())
+			Expect(opts.Port).To(Equal(8080))
 			Expect(opts.Secret).To(Equal("foobar"))
 			Expect(opts.SignHeader).To(Equal("Test-Signature"))
 			Expect(opts.Upstream.Raw).To(Equal(
 				"https://localhost:8080/"))
-			Expect(opts.Upstream.Url.String()).To(Equal(
+			Expect(opts.Upstream.URL.String()).To(Equal(
 				"https://localhost:8080/"))
-			Expect(opts.Mode).To(Equal(SIGN_AND_PROXY))
+			Expect(opts.Mode).To(Equal(HandlerSignAndProxy))
 		})
 
 		It("should set auth-and-proxy mode using defaults", func() {
 			err := flags.Parse([]string{
+				"-port=8080",
 				"-secret=foobar",
 				"-sign-header=Test-Signature",
 				"-upstream=https://localhost:8080/",
@@ -56,11 +58,12 @@ var _ = Describe("HmacProxyOpts", func() {
 			Expect(err).NotTo(HaveOccurred())
 			err = opts.Validate()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(opts.Mode).To(Equal(AUTH_AND_PROXY))
+			Expect(opts.Mode).To(Equal(HandlerAuthAndProxy))
 		})
 
 		It("should set auth-for-files mode using defaults", func() {
 			err := flags.Parse([]string{
+				"-port=8080",
 				"-secret=foobar",
 				"-sign-header=Test-Signature",
 				"-file-root=.",
@@ -70,11 +73,12 @@ var _ = Describe("HmacProxyOpts", func() {
 			err = opts.Validate()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(opts.FileRoot).To(Equal("."))
-			Expect(opts.Mode).To(Equal(AUTH_FOR_FILES))
+			Expect(opts.Mode).To(Equal(HandlerAuthForFiles))
 		})
 
 		It("should set auth-only mode using defaults", func() {
 			err := flags.Parse([]string{
+				"-port=8080",
 				"-secret=foobar",
 				"-sign-header=Test-Signature",
 				"-auth",
@@ -82,27 +86,26 @@ var _ = Describe("HmacProxyOpts", func() {
 			Expect(err).NotTo(HaveOccurred())
 			err = opts.Validate()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(opts.Mode).To(Equal(AUTH_ONLY))
+			Expect(opts.Mode).To(Equal(HandlerAuthOnly))
 		})
 
 		It("should accept default overrides", func() {
 			err := flags.Parse([]string{
+				"-port=8080",
 				"-secret=foobar",
 				"-sign-header=Test-Signature",
 				"-auth",
-				"-port=8080",
 				"-digest=md5",
 				"-headers=Content-Type,Date,Gap-Auth",
 			})
 			Expect(err).NotTo(HaveOccurred())
 			err = opts.Validate()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(opts.Port).To(Equal(8080))
 			Expect(opts.Digest.Name).To(Equal("md5"))
-			Expect(opts.Digest.Id).To(Equal(crypto.MD5))
+			Expect(opts.Digest.ID).To(Equal(crypto.MD5))
 			Expect([]string(opts.Headers)).To(Equal([]string{
 				"Content-Type", "Date", "Gap-Auth"}))
-			Expect(opts.Mode).To(Equal(AUTH_ONLY))
+			Expect(opts.Mode).To(Equal(HandlerAuthOnly))
 		})
 
 		It("should accept SSL options", func() {
@@ -110,6 +113,7 @@ var _ = Describe("HmacProxyOpts", func() {
 			cwd, _ := os.Getwd()
 			filename := filepath.Join(cwd, "options_test.go")
 			err := flags.Parse([]string{
+				"-port=8080",
 				"-secret=foobar",
 				"-sign-header=Test-Signature",
 				"-auth",
@@ -121,9 +125,8 @@ var _ = Describe("HmacProxyOpts", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(opts.SslCert).To(Equal(filename))
 			Expect(opts.SslKey).To(Equal(filename))
-			Expect(opts.Mode).To(Equal(AUTH_ONLY))
+			Expect(opts.Mode).To(Equal(HandlerAuthOnly))
 		})
-
 	})
 
 	Context("with an invalid configuration", func() {
@@ -135,6 +138,7 @@ var _ = Describe("HmacProxyOpts", func() {
 			Expect(err.Error()).To(Equal(optionErrors([]string{
 				"neither -upstream, -file-root, nor -auth " +
 					"specified",
+				"port must be specified and greater than zero",
 				"no secret specified",
 				"no signature header specified",
 			})))
@@ -142,6 +146,7 @@ var _ = Describe("HmacProxyOpts", func() {
 
 		It("should report all file root errors", func() {
 			err := flags.Parse([]string{
+				"-port=8080",
 				"-secret=foobar",
 				"-sign-header=Test-Signature",
 				"-upstream=http://localhost",
@@ -159,6 +164,7 @@ var _ = Describe("HmacProxyOpts", func() {
 
 		It("should report port and hash digest errors", func() {
 			err := flags.Parse([]string{
+				"-port=-1",
 				"-secret=foobar",
 				"-sign-header=Test-Signature",
 				"-upstream=http://localhost",
@@ -169,13 +175,14 @@ var _ = Describe("HmacProxyOpts", func() {
 			err = opts.Validate()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal(optionErrors([]string{
-				"invalid port: -1",
+				"port must be specified and greater than zero",
 				"unsupported digest: unsupported",
 			})))
 		})
 
 		It("should report incomplete upstream spec errors", func() {
 			err := flags.Parse([]string{
+				"-port=8080",
 				"-secret=foobar",
 				"-sign-header=Test-Signature",
 				"-upstream=/",
@@ -191,6 +198,7 @@ var _ = Describe("HmacProxyOpts", func() {
 
 		It("should report incorrect upstream spec errors", func() {
 			err := flags.Parse([]string{
+				"-port=8080",
 				"-secret=foobar",
 				"-sign-header=Test-Signature",
 				"-upstream=gopher://foo.com/bar/",
@@ -206,6 +214,7 @@ var _ = Describe("HmacProxyOpts", func() {
 
 		It("should report incorrect upstream spec errors", func() {
 			err := flags.Parse([]string{
+				"-port=8080",
 				"-secret=foobar",
 				"-sign-header=Test-Signature",
 				"-upstream=gopher://foo.com/bar/",
@@ -221,6 +230,7 @@ var _ = Describe("HmacProxyOpts", func() {
 
 		It("should report missing ssl-key option", func() {
 			err := flags.Parse([]string{
+				"-port=8080",
 				"-secret=foobar",
 				"-sign-header=Test-Signature",
 				"-upstream=https://localhost:8080/",
@@ -238,6 +248,7 @@ var _ = Describe("HmacProxyOpts", func() {
 
 		It("should report missing ssl-cert option", func() {
 			err := flags.Parse([]string{
+				"-port=8080",
 				"-secret=foobar",
 				"-sign-header=Test-Signature",
 				"-upstream=https://localhost:8080/",
@@ -255,6 +266,7 @@ var _ = Describe("HmacProxyOpts", func() {
 
 		It("should report missing ssl-cert and ssl-key errors", func() {
 			err := flags.Parse([]string{
+				"-port=8080",
 				"-secret=foobar",
 				"-sign-header=Test-Signature",
 				"-upstream=https://localhost:8080/",
