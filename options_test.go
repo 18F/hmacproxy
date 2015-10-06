@@ -42,9 +42,9 @@ var _ = Describe("HmacProxyOpts", func() {
 			Expect(opts.SignHeader).To(Equal("Test-Signature"))
 			Expect(opts.Upstream.Raw).To(Equal(
 				"https://localhost:8080/"))
-			Expect(opts.Upstream.Url.String()).To(Equal(
+			Expect(opts.Upstream.URL.String()).To(Equal(
 				"https://localhost:8080/"))
-			Expect(opts.Mode).To(Equal(SIGN_AND_PROXY))
+			Expect(opts.Mode).To(Equal(HandlerSignAndProxy))
 		})
 
 		It("should set auth-and-proxy mode using defaults", func() {
@@ -58,7 +58,7 @@ var _ = Describe("HmacProxyOpts", func() {
 			Expect(err).NotTo(HaveOccurred())
 			err = opts.Validate()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(opts.Mode).To(Equal(AUTH_AND_PROXY))
+			Expect(opts.Mode).To(Equal(HandlerAuthAndProxy))
 		})
 
 		It("should set auth-for-files mode using defaults", func() {
@@ -73,7 +73,7 @@ var _ = Describe("HmacProxyOpts", func() {
 			err = opts.Validate()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(opts.FileRoot).To(Equal("."))
-			Expect(opts.Mode).To(Equal(AUTH_FOR_FILES))
+			Expect(opts.Mode).To(Equal(HandlerAuthForFiles))
 		})
 
 		It("should set auth-only mode using defaults", func() {
@@ -86,7 +86,7 @@ var _ = Describe("HmacProxyOpts", func() {
 			Expect(err).NotTo(HaveOccurred())
 			err = opts.Validate()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(opts.Mode).To(Equal(AUTH_ONLY))
+			Expect(opts.Mode).To(Equal(HandlerAuthOnly))
 		})
 
 		It("should accept default overrides", func() {
@@ -102,10 +102,10 @@ var _ = Describe("HmacProxyOpts", func() {
 			err = opts.Validate()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(opts.Digest.Name).To(Equal("md5"))
-			Expect(opts.Digest.Id).To(Equal(crypto.MD5))
+			Expect(opts.Digest.ID).To(Equal(crypto.MD5))
 			Expect([]string(opts.Headers)).To(Equal([]string{
 				"Content-Type", "Date", "Gap-Auth"}))
-			Expect(opts.Mode).To(Equal(AUTH_ONLY))
+			Expect(opts.Mode).To(Equal(HandlerAuthOnly))
 		})
 
 		It("should accept SSL options", func() {
@@ -125,9 +125,8 @@ var _ = Describe("HmacProxyOpts", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(opts.SslCert).To(Equal(filename))
 			Expect(opts.SslKey).To(Equal(filename))
-			Expect(opts.Mode).To(Equal(AUTH_ONLY))
+			Expect(opts.Mode).To(Equal(HandlerAuthOnly))
 		})
-
 	})
 
 	Context("with an invalid configuration", func() {

@@ -16,7 +16,7 @@ func main() {
 	}
 
 	address := ":" + strconv.Itoa(opts.Port)
-	handler, description := NewHttpProxyHandler(opts)
+	handler, description := NewHTTPProxyHandler(opts)
 	server := &http.Server{Addr: address, Handler: handler}
 	fmt.Printf("port %d: %s\n", opts.Port, description)
 

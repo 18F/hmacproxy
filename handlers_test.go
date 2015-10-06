@@ -24,7 +24,7 @@ func newHandler(flags *flag.FlagSet, opts *HmacProxyOpts,
 	if err := opts.Validate(); err != nil {
 		panic("error parsing options: " + err.Error())
 	}
-	return NewHttpProxyHandler(opts)
+	return NewHTTPProxyHandler(opts)
 }
 
 type proxiedServer struct {
@@ -32,7 +32,7 @@ type proxiedServer struct {
 }
 
 func (ps proxiedServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Success!"))
+	_, _ = w.Write([]byte("Success!"))
 }
 
 var _ = Describe("HmacProxy Handlers", func() {

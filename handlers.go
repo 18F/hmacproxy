@@ -7,19 +7,21 @@ import (
 	"net/http/httputil"
 )
 
-func NewHttpProxyHandler(opts *HmacProxyOpts) (
+// NewHTTPProxyHandler returns a http.Handler and its description based on the
+// configuration specified in opts.
+func NewHTTPProxyHandler(opts *HmacProxyOpts) (
 	handler http.Handler, description string) {
-	auth := hmacauth.NewHmacAuth(opts.Digest.Id,
+	auth := hmacauth.NewHmacAuth(opts.Digest.ID,
 		[]byte(opts.Secret), opts.SignHeader, opts.Headers)
 
 	switch opts.Mode {
-	case SIGN_AND_PROXY:
+	case HandlerSignAndProxy:
 		return signAndProxyHandler(auth, &opts.Upstream)
-	case AUTH_AND_PROXY:
+	case HandlerAuthAndProxy:
 		return authAndProxyHandler(auth, &opts.Upstream)
-	case AUTH_FOR_FILES:
+	case HandlerAuthForFiles:
 		return authForFilesHandler(auth, opts.FileRoot)
-	case AUTH_ONLY:
+	case HandlerAuthOnly:
 		return authenticationOnlyHandler(auth)
 	}
 	log.Fatalf("unknown mode: %d\n", opts.Mode)
@@ -36,10 +38,10 @@ func (h signingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.handler.ServeHTTP(w, r)
 }
 
-func signAndProxyHandler(auth hmacauth.HmacAuth, upstream *HmacProxyUrl) (
+func signAndProxyHandler(auth hmacauth.HmacAuth, upstream *HmacProxyURL) (
 	handler http.Handler, description string) {
 	description = "proxying signed requests to: " + upstream.Raw
-	proxy := httputil.NewSingleHostReverseProxy(upstream.Url)
+	proxy := httputil.NewSingleHostReverseProxy(upstream.URL)
 	handler = signingHandler{auth, proxy}
 	return
 }
@@ -58,10 +60,10 @@ func (h authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func authAndProxyHandler(auth hmacauth.HmacAuth, upstream *HmacProxyUrl) (
+func authAndProxyHandler(auth hmacauth.HmacAuth, upstream *HmacProxyURL) (
 	handler http.Handler, description string) {
 	description = "proxying authenticated requests to: " + upstream.Raw
-	proxy := httputil.NewSingleHostReverseProxy(upstream.Url)
+	proxy := httputil.NewSingleHostReverseProxy(upstream.URL)
 	handler = authHandler{auth, proxy}
 	return
 }
