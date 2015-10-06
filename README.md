@@ -3,6 +3,10 @@
 Proxy server that signs and authenticates HTTP requests using an HMAC
 signature; uses the [github.com/18F/hmacauth Go package](https://github.com/18F/hmacauth).
 
+[![Build Status](https://travis-ci.org/18F/hmacproxy.svg?branch=master)](https://travis-ci.org/18F/hmacproxy)
+
+[![Coverage Status](https://coveralls.io/repos/18F/hmacproxy/badge.svg?branch=master&service=github)](https://coveralls.io/github/18F/hmacproxy?branch=master)
+
 ## Installation
 
 For now, install from source:
