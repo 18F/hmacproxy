@@ -1,8 +1,7 @@
-package main_test
+package main
 
 import (
 	"flag"
-	. "github.com/18F/hmacproxy"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"io/ioutil"

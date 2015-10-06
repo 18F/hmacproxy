@@ -1,9 +1,8 @@
-package main_test
+package main
 
 import (
 	"crypto"
 	"flag"
-	. "github.com/18F/hmacproxy"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"os"

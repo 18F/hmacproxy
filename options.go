@@ -99,23 +99,21 @@ func validateMode(opts *HmacProxyOpts, msgs []string) []string {
 		msgs = append(msgs, "-auth must be specified with -file-root")
 	}
 
-	if opts.Auth {
-		if upstreamDefined {
-			opts.Mode = AUTH_AND_PROXY
-		} else if fileRootDefined {
-			opts.Mode = AUTH_FOR_FILES
-		} else {
-			opts.Mode = AUTH_ONLY
-		}
-	} else {
+	if !opts.Auth {
 		opts.Mode = SIGN_AND_PROXY
+	} else if upstreamDefined {
+		opts.Mode = AUTH_AND_PROXY
+	} else if fileRootDefined {
+		opts.Mode = AUTH_FOR_FILES
+	} else {
+		opts.Mode = AUTH_ONLY
 	}
 	return msgs
 }
 
 func validatePort(opts *HmacProxyOpts, msgs []string) []string {
 	if opts.Port <= 0 {
-		msgs = append(msgs, "port must be specified and " +
+		msgs = append(msgs, "port must be specified and "+
 			"greater than zero")
 	}
 	return msgs
