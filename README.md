@@ -8,8 +8,7 @@ signature; uses the [github.com/18F/hmacauth Go package](https://github.com/18F/
 For now, install from source:
 
 ```sh
-$ go get github.com/tools/godep
-$ godep go install -v github.com/18F/hmacproxy
+$ go get github.com/18F/hmacproxy
 ```
 
 ## Testing out locally
