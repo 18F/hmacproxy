@@ -84,6 +84,38 @@ by using an `auth_request` directive to proxy to the `hmacproxy`.
 $ hmacproxy -port 8080 -secret "foobar" -sign-header "X-Signature" -auth
 ```
 
+Then add configuration such as the following to your nginx instance, where:
+
+- `PORT` is replaced with the port number of your service
+- `myservice.com` is replaced with the virtual server name for your service
+- `ssl/star.myservice.com.conf` contains the SSL configuration for your
+  server.
+- `http://127.0.0.1:8080` matches the address of the local `hmacproxy`
+  instance from above
+- The `X-Original-URI` header is added to the authentication request, defined
+  using [the builtin `$request_uri` nginx
+  variable](http://nginx.org/en/docs/http/ngx_http_core_module.html#var_request_uri).
+
+```
+server {
+  listen PORT ssl spdy;
+  server_name  myservice.com;
+
+  include ssl/star.myservice.com.conf;
+
+  location = /auth {
+    internal;
+    proxy_pass http://127.0.0.1:8080;
+    proxy_set_header X-Original-URI $request_uri;
+  }
+
+  location / {
+    auth_request /auth;
+    ...
+  }
+}
+```
+
 ## Accepting incoming requests over SSL
 
 If you wish to expose the proxy endpoints directly to the public, rather than

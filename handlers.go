@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"net/url"
 )
 
 // NewHTTPProxyHandler returns a http.Handler and its description based on the
@@ -82,7 +83,13 @@ type authOnlyHandler struct {
 }
 
 func (h authOnlyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if origURI := r.Header.Get("X-Original-URI"); origURI != "" {
+		if origURL, err := url.ParseRequestURI(origURI); err == nil {
+			r.URL = origURL
+		}
+	}
 	result, _, _ := h.auth.ValidateRequest(r)
+
 	if result != hmacauth.ResultMatch {
 		http.Error(w, "unauthorized request", http.StatusUnauthorized)
 	} else {

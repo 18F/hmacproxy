@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/http/httputil"
+	"net/url"
 	"os"
 )
 
@@ -25,6 +27,22 @@ func newHandler(flags *flag.FlagSet, opts *HmacProxyOpts,
 		panic("error parsing options: " + err.Error())
 	}
 	return NewHTTPProxyHandler(opts)
+}
+
+type authDelegatingServer struct {
+	authServerURL string
+}
+
+func (ads authDelegatingServer) ServeHTTP(
+	w http.ResponseWriter, r *http.Request) {
+	r.Header.Set("X-Original-URI", r.URL.String())
+	r.URL.Path = "/auth"
+	if upstreamURL, err := url.Parse(ads.authServerURL); err != nil {
+		panic(err)
+	} else {
+		proxy := httputil.NewSingleHostReverseProxy(upstreamURL)
+		proxy.ServeHTTP(w, r)
+	}
 }
 
 type proxiedServer struct {
@@ -115,6 +133,36 @@ var _ = Describe("HmacProxy Handlers", func() {
 				Equal(http.StatusUnauthorized))
 			Expect(string(body)).To(Equal("unauthorized request\n"))
 		})
+
+		It("should honor the X-Original-URI header", func() {
+			authServer, authServerDesc := upstreamServer([]string{
+				"-secret=foobar",
+				"-sign-header=Test-Signature",
+				"-headers=Content-Type",
+				"-auth",
+			})
+			Expect(authServerDesc).To(Equal("responding " +
+				"Accepted/Unauthorized for auth queries"))
+
+			delegator := httptest.NewServer(authDelegatingServer{
+				authServerURL: authServer.URL})
+
+			local, localDesc := localServer([]string{
+				"-secret=foobar",
+				"-sign-header=Test-Signature",
+				"-headers=content-type",
+				"-upstream=" + delegator.URL,
+			})
+			Expect(localDesc).To(Equal("proxying signed " +
+				"requests to: " + delegator.URL))
+
+			response, err := http.Get(local.URL)
+			defer response.Body.Close()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(response.StatusCode).To(
+				Equal(http.StatusAccepted))
+		})
+
 	})
 
 	Context("sending requests to a file serving upstream", func() {
