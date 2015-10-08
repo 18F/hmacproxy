@@ -53,7 +53,7 @@ type authHandler struct {
 }
 
 func (h authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	result, _, _ := h.auth.ValidateRequest(r)
+	result, _, _ := h.auth.AuthenticateRequest(r)
 	if result != hmacauth.ResultMatch {
 		http.Error(w, "unauthorized request", http.StatusUnauthorized)
 	} else {
@@ -88,7 +88,7 @@ func (h authOnlyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			r.URL = origURL
 		}
 	}
-	result, _, _ := h.auth.ValidateRequest(r)
+	result, _, _ := h.auth.AuthenticateRequest(r)
 
 	if result != hmacauth.ResultMatch {
 		http.Error(w, "unauthorized request", http.StatusUnauthorized)

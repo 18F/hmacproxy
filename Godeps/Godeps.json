@@ -4,8 +4,8 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/18F/hmacauth",
-			"Comment": "0.0.1",
-			"Rev": "42a089d230cce8e6844c503b7f2248d607a3a4b6"
+			"Comment": "1.0.0",
+			"Rev": "f9bb4535d46d33bcf07fa38e9547da5cd06ec32a"
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",
